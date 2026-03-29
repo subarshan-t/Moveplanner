@@ -1,16 +1,13 @@
 import React, { useState } from 'react'
-import {
-  Baby, Star, Heart, Book, Sun, Users, CheckCircle2,
-  AlertCircle, Info, ChevronDown, ChevronUp
-} from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 function InfoBox({ type = 'info', children }) {
   const styles = {
-    info: 'bg-blue-50 border-blue-200 text-blue-700',
-    warning: 'bg-amber-50 border-amber-200 text-amber-700',
-    success: 'bg-green-50 border-green-200 text-green-700',
-    pink: 'bg-pink-50 border-pink-200 text-pink-700',
-    teal: 'bg-teal-50 border-teal-200 text-teal-700',
+    info: 'bg-blue-500/10 border-blue-500/30 text-blue-300',
+    warning: 'bg-amber-500/10 border-amber-500/30 text-amber-300',
+    success: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300',
+    pink: 'bg-pink-500/10 border-pink-500/30 text-pink-300',
+    teal: 'bg-teal-500/10 border-teal-500/30 text-teal-300',
   }
   return (
     <div className={`rounded-xl p-3.5 border mb-3 text-sm leading-relaxed ${styles[type]}`}>
@@ -19,23 +16,23 @@ function InfoBox({ type = 'info', children }) {
   )
 }
 
-function Collapsible({ title, emoji, children, defaultOpen = true, color = 'pink' }) {
+function Collapsible({ title, emoji, children, defaultOpen = true, accentColor = 'pink' }) {
   const [open, setOpen] = useState(defaultOpen)
   const colors = {
-    pink: { header: 'from-pink-500 to-rose-400', border: 'border-pink-200' },
-    teal: { header: 'from-teal-500 to-cyan-400', border: 'border-teal-200' },
-    purple: { header: 'from-purple-500 to-violet-400', border: 'border-purple-200' },
-    orange: { header: 'from-orange-500 to-amber-400', border: 'border-orange-200' },
-    green: { header: 'from-green-500 to-emerald-400', border: 'border-green-200' },
+    pink: 'border-pink-500',
+    teal: 'border-teal-500',
+    purple: 'border-purple-500',
+    amber: 'border-amber-500',
+    emerald: 'border-emerald-500',
   }
-  const c = colors[color]
+  const border = colors[accentColor] || colors.pink
   return (
-    <div className={`rounded-2xl border-2 ${c.border} overflow-hidden mb-5 bg-white`}>
+    <div className={`bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden mb-5`}>
       <button className="w-full text-left" onClick={() => setOpen(!open)}>
-        <div className={`bg-gradient-to-r ${c.header} px-5 py-4 flex items-center gap-3`}>
+        <div className={`border-l-4 ${border} bg-gray-800 px-5 py-4 flex items-center gap-3`}>
           <span className="text-2xl">{emoji}</span>
-          <h2 className="font-display font-bold text-white text-lg flex-1">{title}</h2>
-          {open ? <ChevronUp className="w-5 h-5 text-white/80" /> : <ChevronDown className="w-5 h-5 text-white/80" />}
+          <h2 className="font-bold text-gray-100 text-base flex-1">{title}</h2>
+          {open ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
         </div>
       </button>
       {open && <div className="p-5">{children}</div>}
@@ -45,11 +42,11 @@ function Collapsible({ title, emoji, children, defaultOpen = true, color = 'pink
 
 function CheckItem({ text, note }) {
   return (
-    <div className="flex items-start gap-2.5 py-2 border-b border-gray-100 last:border-0">
-      <div className="w-5 h-5 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold">✓</div>
+    <div className="flex items-start gap-2.5 py-2 border-b border-gray-800 last:border-0">
+      <div className="w-5 h-5 rounded-full bg-pink-500/20 text-pink-400 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold">✓</div>
       <div>
-        <span className="text-sm text-gray-700">{text}</span>
-        {note && <p className="text-xs text-gray-400 mt-0.5">{note}</p>}
+        <span className="text-sm text-gray-300">{text}</span>
+        {note && <p className="text-xs text-gray-500 mt-0.5">{note}</p>}
       </div>
     </div>
   )
@@ -57,31 +54,31 @@ function CheckItem({ text, note }) {
 
 export default function Kids() {
   return (
-    <div className="page-container p-4 lg:p-8 max-w-4xl mx-auto">
+    <div className="p-4 lg:p-8 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-2xl">👧</span>
-          <h1 className="font-display font-bold text-3xl text-gray-800">Kids Corner</h1>
+          <h1 className="font-bold text-3xl text-gray-100">Kids Corner</h1>
         </div>
-        <p className="text-gray-500 text-base">Everything for Aranya (4) and Aradhya (2) — their new Japanese adventure</p>
+        <p className="text-gray-400 text-base">Everything for Aranya (4) and Aradhya (2) — their new Japanese adventure</p>
       </div>
 
       {/* Kids Overview */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-pink-400 to-rose-400 rounded-2xl p-5 text-white">
+        <div className="bg-gray-900 border border-pink-500/30 rounded-2xl p-5">
           <div className="text-3xl mb-2">👧</div>
-          <p className="font-display font-bold text-xl">Aranya</p>
-          <p className="text-pink-100 text-sm">4 years old</p>
-          <div className="mt-2 bg-white/20 rounded-xl px-3 py-1.5 text-sm font-semibold">
+          <p className="font-bold text-xl text-gray-100">Aranya</p>
+          <p className="text-pink-400 text-sm">4 years old</p>
+          <div className="mt-2 bg-pink-500/10 border border-pink-500/20 rounded-xl px-3 py-1.5 text-sm font-semibold text-pink-400">
             Yochien / Hoikuen Age
           </div>
         </div>
-        <div className="bg-gradient-to-br from-purple-400 to-violet-400 rounded-2xl p-5 text-white">
+        <div className="bg-gray-900 border border-purple-500/30 rounded-2xl p-5">
           <div className="text-3xl mb-2">👶</div>
-          <p className="font-display font-bold text-xl">Aradhya</p>
-          <p className="text-purple-100 text-sm">2 years old</p>
-          <div className="mt-2 bg-white/20 rounded-xl px-3 py-1.5 text-sm font-semibold">
+          <p className="font-bold text-xl text-gray-100">Aradhya</p>
+          <p className="text-purple-400 text-sm">2 years old</p>
+          <div className="mt-2 bg-purple-500/10 border border-purple-500/20 rounded-xl px-3 py-1.5 text-sm font-semibold text-purple-400">
             Hoikuen Age
           </div>
         </div>
@@ -92,34 +89,34 @@ export default function Kids() {
       </InfoBox>
 
       {/* Aranya's Schooling */}
-      <Collapsible title="Aranya (4 years) — Yochien & Hoikuen" emoji="👧" color="pink">
+      <Collapsible title="Aranya (4 years) — Yochien & Hoikuen" emoji="👧" accentColor="pink">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="bg-pink-50 rounded-xl p-4 border border-pink-100">
-            <p className="font-bold text-pink-800 mb-2">🏫 Yochien (幼稚園)</p>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              Kindergarten for ages <strong>3–5</strong>. Usually <strong>shorter hours</strong> (9am–2pm), designed for early education. Has more structured curriculum. Many types: public, private, international.
+          <div className="bg-gray-800 rounded-xl p-4 border border-pink-500/20">
+            <p className="font-bold text-pink-400 mb-2">🏫 Yochien (幼稚園)</p>
+            <p className="text-sm text-gray-300 leading-relaxed">
+              Kindergarten for ages <strong className="text-gray-100">3–5</strong>. Usually <strong className="text-gray-100">shorter hours</strong> (9am–2pm), designed for early education. Has more structured curriculum. Many types: public, private, international.
             </p>
             <div className="mt-2 space-y-1">
-              <p className="text-xs text-gray-500">✓ Good for early learning Japanese</p>
-              <p className="text-xs text-gray-500">✓ Morning-focused schedule</p>
-              <p className="text-xs text-gray-500">⚠ Shorter hours may not suit working parents</p>
+              <p className="text-xs text-emerald-400">✓ Good for early learning Japanese</p>
+              <p className="text-xs text-emerald-400">✓ Morning-focused schedule</p>
+              <p className="text-xs text-amber-400">⚠ Shorter hours may not suit working parents</p>
             </div>
           </div>
-          <div className="bg-teal-50 rounded-xl p-4 border border-teal-100">
-            <p className="font-bold text-teal-800 mb-2">🏡 Hoikuen (保育園)</p>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              Daycare center for ages <strong>0–5</strong>. Full-day care (<strong>7am–6pm+</strong>), primarily for working parents. Both Aranya and Aradhya can attend the same place!
+          <div className="bg-gray-800 rounded-xl p-4 border border-teal-500/20">
+            <p className="font-bold text-teal-400 mb-2">🏡 Hoikuen (保育園)</p>
+            <p className="text-sm text-gray-300 leading-relaxed">
+              Daycare center for ages <strong className="text-gray-100">0–5</strong>. Full-day care (<strong className="text-gray-100">7am–6pm+</strong>), primarily for working parents. Both Aranya and Aradhya can attend the same place!
             </p>
             <div className="mt-2 space-y-1">
-              <p className="text-xs text-gray-500">✓ Full-day care for working parents</p>
-              <p className="text-xs text-gray-500">✓ Both girls can attend together</p>
-              <p className="text-xs text-gray-500">⚠ Waiting lists can be long in central Tokyo</p>
+              <p className="text-xs text-emerald-400">✓ Full-day care for working parents</p>
+              <p className="text-xs text-emerald-400">✓ Both girls can attend together</p>
+              <p className="text-xs text-amber-400">⚠ Waiting lists can be long in central Tokyo</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-pink-100 p-4 mb-4">
-          <p className="font-semibold text-gray-800 mb-3">🌍 International Options in Tokyo</p>
+        <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 mb-4">
+          <p className="font-semibold text-gray-100 mb-3">🌍 International Options in Tokyo</p>
           <div className="space-y-2">
             {[
               { name: 'Tokyo International Learning Community (TILC)', note: 'English-medium, international-focused' },
@@ -130,15 +127,15 @@ export default function Kids() {
               <div key={i} className="flex items-start gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-pink-400 mt-2 flex-shrink-0" />
                 <div>
-                  <span className="text-sm font-semibold text-gray-800">{s.name}</span>
-                  <p className="text-xs text-gray-500">{s.note}</p>
+                  <span className="text-sm font-semibold text-gray-100">{s.name}</span>
+                  <p className="text-xs text-gray-400">{s.note}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="font-semibold text-gray-800 mb-2">📋 How to Apply (Yochien)</p>
+        <p className="font-semibold text-gray-100 mb-2">📋 How to Apply (Yochien)</p>
         <div className="space-y-2 mb-4">
           {[
             'Go to your ward office (区役所) and ask about yochien in your area',
@@ -148,24 +145,22 @@ export default function Kids() {
             'Pay enrollment fees if accepted',
           ].map((step, i) => (
             <div key={i} className="flex items-center gap-2.5">
-              <div className="w-5 h-5 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-xs font-bold flex-shrink-0">{i+1}</div>
-              <span className="text-sm text-gray-700">{step}</span>
+              <div className="w-5 h-5 rounded-full bg-pink-500/20 text-pink-400 flex items-center justify-center text-xs font-bold flex-shrink-0">{i+1}</div>
+              <span className="text-sm text-gray-300">{step}</span>
             </div>
           ))}
         </div>
 
         <InfoBox type="info">
-          <strong>💡 Language Tip for Aranya:</strong> At 4 years old, Aranya will pick up Japanese incredibly quickly. Research shows children under 6 acquire languages almost effortlessly. Give her 3–6 months and she'll be playing naturally with Japanese friends. Consider Japanese hoikuen over international schools for faster language acquisition!
+          <strong>💡 Language Tip for Aranya:</strong> At 4 years old, Aranya will pick up Japanese incredibly quickly. Research shows children under 6 acquire languages almost effortlessly. Give her 3–6 months and she'll be playing naturally with Japanese friends.
         </InfoBox>
       </Collapsible>
 
       {/* Aradhya's Schooling */}
-      <Collapsible title="Aradhya (2 years) — Hoikuen & Daycare" emoji="👶" color="purple">
-        <div className="bg-purple-50 rounded-xl p-4 border border-purple-100 mb-4">
-          <p className="font-bold text-purple-800 mb-2">🏡 Hoikuen (保育園) — Authorized Daycare</p>
-          <p className="text-sm text-gray-700 leading-relaxed">
-            The best option for Aradhya is an authorized hoikuen (認可保育所). These are:
-          </p>
+      <Collapsible title="Aradhya (2 years) — Hoikuen & Daycare" emoji="👶" accentColor="purple" defaultOpen={false}>
+        <div className="bg-gray-800 rounded-xl p-4 border border-purple-500/20 mb-4">
+          <p className="font-bold text-purple-400 mb-2">🏡 Hoikuen (保育園) — Authorized Daycare</p>
+          <p className="text-sm text-gray-300 leading-relaxed">The best option for Aradhya is an authorized hoikuen (認可保育所). These are:</p>
           <div className="mt-2 grid grid-cols-2 gap-2">
             {[
               { label: 'Cost', value: 'Subsidized (means-tested)' },
@@ -173,21 +168,19 @@ export default function Kids() {
               { label: 'Age', value: 'From 0 months to 5 years' },
               { label: 'Quality', value: 'Regulated & high-quality' },
             ].map((item, i) => (
-              <div key={i} className="bg-white rounded-lg p-2">
+              <div key={i} className="bg-gray-700 rounded-lg p-2">
                 <p className="text-xs text-gray-400">{item.label}</p>
-                <p className="text-sm font-semibold text-gray-800">{item.value}</p>
+                <p className="text-sm font-semibold text-gray-100">{item.value}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-amber-50 rounded-xl p-4 border border-amber-200 mb-4">
-          <p className="font-bold text-amber-800 mb-2">⚠️ About Waiting Lists</p>
-          <p className="text-sm text-gray-700 leading-relaxed">
-            Popular hoikuens in central Tokyo can have <strong>very long waiting lists</strong>, sometimes 6–12+ months.
-            Apply at the ward office <strong>immediately after arriving in Japan</strong>.
-            <br /><br />
-            <strong>Tips to improve chances:</strong>
+        <div className="bg-amber-500/10 rounded-xl p-4 border border-amber-500/20 mb-4">
+          <p className="font-bold text-amber-400 mb-2">⚠️ About Waiting Lists</p>
+          <p className="text-sm text-gray-300 leading-relaxed">
+            Popular hoikuens in central Tokyo can have <strong className="text-amber-400">very long waiting lists</strong>, sometimes 6–12+ months.
+            Apply at the ward office <strong className="text-amber-400">immediately after arriving in Japan</strong>.
           </p>
           <ul className="mt-2 space-y-1">
             {[
@@ -196,7 +189,7 @@ export default function Kids() {
               'Ask about temporary spots while waiting',
               'University may have partner hoikuens — ask your university!',
             ].map((t, i) => (
-              <li key={i} className="text-sm text-gray-700 flex items-center gap-2">
+              <li key={i} className="text-sm text-gray-300 flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
                 {t}
               </li>
@@ -204,7 +197,7 @@ export default function Kids() {
           </ul>
         </div>
 
-        <p className="font-semibold text-gray-800 mb-2">📋 How to Apply for Hoikuen</p>
+        <p className="font-semibold text-gray-100 mb-2">📋 How to Apply for Hoikuen</p>
         <div className="space-y-2 mb-4">
           {[
             'Register your family at the ward office first (住民登録)',
@@ -215,8 +208,8 @@ export default function Kids() {
             'If not placed immediately, go on waiting list & check regularly',
           ].map((step, i) => (
             <div key={i} className="flex items-center gap-2.5">
-              <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold flex-shrink-0">{i+1}</div>
-              <span className="text-sm text-gray-700">{step}</span>
+              <div className="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-bold flex-shrink-0">{i+1}</div>
+              <span className="text-sm text-gray-300">{step}</span>
             </div>
           ))}
         </div>
@@ -227,27 +220,27 @@ export default function Kids() {
       </Collapsible>
 
       {/* Health for Both Kids */}
-      <Collapsible title="Health & Insurance for Both Kids" emoji="🏥" color="teal">
-        <div className="bg-teal-50 rounded-xl p-4 border border-teal-100 mb-4">
-          <p className="font-bold text-teal-800 mb-2">🩺 National Health Insurance (国民健康保険)</p>
-          <p className="text-sm text-gray-700 leading-relaxed">
+      <Collapsible title="Health & Insurance for Both Kids" emoji="🏥" accentColor="teal" defaultOpen={false}>
+        <div className="bg-gray-800 rounded-xl p-4 border border-teal-500/20 mb-4">
+          <p className="font-bold text-teal-400 mb-2">🩺 National Health Insurance (国民健康保険)</p>
+          <p className="text-sm text-gray-300 leading-relaxed">
             Once registered at the ward office, enroll both girls in National Health Insurance (NHI).
             Children's medical care in Tokyo is significantly subsidized — many wards offer free or near-free
             medical care for children under 15!
           </p>
         </div>
 
-        <div className="bg-green-50 rounded-xl p-4 border border-green-100 mb-4">
-          <p className="font-bold text-green-800 mb-2">💉 Child Medical Fee Assistance (子ども医療費助成)</p>
-          <p className="text-sm text-gray-700 leading-relaxed">
+        <div className="bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20 mb-4">
+          <p className="font-bold text-emerald-400 mb-2">💉 Child Medical Fee Assistance (子ども医療費助成)</p>
+          <p className="text-sm text-gray-300 leading-relaxed">
             Tokyo's ward offices typically offer child medical assistance programs. In many wards, children's
-            doctor visits are <strong>completely free</strong> or require only a minimal copay (¥200–¥500).
+            doctor visits are <strong className="text-emerald-400">completely free</strong> or require only a minimal copay (¥200–¥500).
             Ask your ward office about this when you register!
           </p>
         </div>
 
-        <p className="font-semibold text-gray-800 mb-3">💉 Vaccinations — Get These in Sri Lanka Before Departure</p>
-        <div className="bg-white rounded-xl border border-gray-100 p-4 mb-3">
+        <p className="font-semibold text-gray-100 mb-3">💉 Vaccinations — Get These in Sri Lanka Before Departure</p>
+        <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 mb-3">
           {[
             { vax: 'MMR (Measles, Mumps, Rubella)', note: 'Japan requires proof of MMR vaccination for school enrollment' },
             { vax: 'Varicella (Chickenpox)', note: 'Recommended if not yet received' },
@@ -256,11 +249,11 @@ export default function Kids() {
             { vax: 'Influenza', note: 'Japan has flu season Oct–Mar — get before or shortly after arrival' },
             { vax: 'Japanese Encephalitis', note: 'Not required but recommended for children living in Japan' },
           ].map((v, i) => (
-            <div key={i} className="flex items-start gap-2.5 py-2 border-b border-gray-100 last:border-0">
+            <div key={i} className="flex items-start gap-2.5 py-2 border-b border-gray-700 last:border-0">
               <div className="w-2 h-2 rounded-full bg-teal-400 mt-2 flex-shrink-0" />
               <div>
-                <span className="text-sm font-semibold text-gray-800">{v.vax}</span>
-                <p className="text-xs text-gray-500 mt-0.5">{v.note}</p>
+                <span className="text-sm font-semibold text-gray-100">{v.vax}</span>
+                <p className="text-xs text-gray-400 mt-0.5">{v.note}</p>
               </div>
             </div>
           ))}
@@ -272,14 +265,14 @@ export default function Kids() {
       </Collapsible>
 
       {/* School Preparation */}
-      <Collapsible title="What to Prepare for School" emoji="🎒" color="orange">
+      <Collapsible title="What to Prepare for School" emoji="🎒" accentColor="amber" defaultOpen={false}>
         <InfoBox type="info">
           Japan has very specific requirements for school supplies — and everything needs to be <strong>labeled with your child's name</strong> (名前を書く). This is taken very seriously!
         </InfoBox>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
-            <p className="font-bold text-orange-800 mb-2">Aranya's Yochien Supplies</p>
+          <div className="bg-gray-800 rounded-xl p-4 border border-amber-500/20">
+            <p className="font-bold text-amber-400 mb-2">Aranya's Yochien Supplies</p>
             {[
               'Indoor shoes (uwabaki 上履き)',
               'Backpack (randoseru for primary, simpler for yochien)',
@@ -290,8 +283,8 @@ export default function Kids() {
               'Name labels on EVERYTHING',
             ].map((item, i) => <CheckItem key={i} text={item} />)}
           </div>
-          <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
-            <p className="font-bold text-purple-800 mb-2">Aradhya's Hoikuen Supplies</p>
+          <div className="bg-gray-800 rounded-xl p-4 border border-purple-500/20">
+            <p className="font-bold text-purple-400 mb-2">Aradhya's Hoikuen Supplies</p>
             {[
               '5–7 changes of clothes (labeled!)',
               'Spare pants/underwear (accidents happen!)',
@@ -304,9 +297,9 @@ export default function Kids() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-orange-100 p-4">
-          <p className="font-semibold text-gray-800 mb-2">🏷️ Name Labeling Tip</p>
-          <p className="text-sm text-gray-700 leading-relaxed">
+        <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+          <p className="font-semibold text-gray-100 mb-2">🏷️ Name Labeling Tip</p>
+          <p className="text-sm text-gray-300 leading-relaxed">
             In Japan, <em>everything</em> in your child's bag needs to have their name on it — clothing, shoes, water bottles, pencils, etc.
             You can buy name label stickers (お名前シール) cheaply on Amazon Japan or at 100 yen stores (Daiso, Seria).
             Consider ordering custom printed name labels online when you arrive — they're inexpensive and save hours of handwriting!
@@ -315,26 +308,26 @@ export default function Kids() {
       </Collapsible>
 
       {/* Making Friends */}
-      <Collapsible title="Making Friends & Community" emoji="🌸" color="green">
+      <Collapsible title="Making Friends & Community" emoji="🌸" accentColor="emerald" defaultOpen={false}>
         <div className="space-y-3">
-          <div className="bg-green-50 rounded-xl p-4 border border-green-100">
-            <p className="font-bold text-green-800 mb-2">🛝 Playgrounds & Parks</p>
-            <p className="text-sm text-gray-700">Japan has excellent public playgrounds (公園). Local parks are great for meeting other parents and kids. Aradhya and Aranya will love Japanese playground equipment!</p>
+          <div className="bg-gray-800 rounded-xl p-4 border border-emerald-500/20">
+            <p className="font-bold text-emerald-400 mb-2">🛝 Playgrounds & Parks</p>
+            <p className="text-sm text-gray-300">Japan has excellent public playgrounds (公園). Local parks are great for meeting other parents and kids. Aradhya and Aranya will love Japanese playground equipment!</p>
           </div>
-          <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-            <p className="font-bold text-blue-800 mb-2">🏛️ Community Centers (地域センター)</p>
-            <p className="text-sm text-gray-700">Ward offices run free or low-cost programs for young children — music classes, reading groups, play dates. Great for meeting local families.</p>
+          <div className="bg-gray-800 rounded-xl p-4 border border-blue-500/20">
+            <p className="font-bold text-blue-400 mb-2">🏛️ Community Centers (地域センター)</p>
+            <p className="text-sm text-gray-300">Ward offices run free or low-cost programs for young children — music classes, reading groups, play dates. Great for meeting local families.</p>
           </div>
-          <div className="bg-pink-50 rounded-xl p-4 border border-pink-100">
-            <p className="font-bold text-pink-800 mb-2">👥 International Parent Groups</p>
-            <p className="text-sm text-gray-700">
-              <strong>Facebook Groups:</strong> "Expat Mums in Tokyo", "International Parents Tokyo", "Sri Lankans in Japan"<br />
-              <strong>Meetup.com:</strong> International parent meetups in Tokyo<br />
-              <strong>Tokyo Families:</strong> tokyofamilies.com — events for families with young children
+          <div className="bg-gray-800 rounded-xl p-4 border border-pink-500/20">
+            <p className="font-bold text-pink-400 mb-2">👥 International Parent Groups</p>
+            <p className="text-sm text-gray-300">
+              <strong className="text-gray-100">Facebook Groups:</strong> "Expat Mums in Tokyo", "International Parents Tokyo", "Sri Lankans in Japan"<br />
+              <strong className="text-gray-100">Meetup.com:</strong> International parent meetups in Tokyo<br />
+              <strong className="text-gray-100">Tokyo Families:</strong> tokyofamilies.com — events for families with young children
             </p>
           </div>
-          <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-100">
-            <p className="font-bold text-yellow-800 mb-2">📱 Helpful Apps for Parents</p>
+          <div className="bg-gray-800 rounded-xl p-4 border border-amber-500/20">
+            <p className="font-bold text-amber-400 mb-2">📱 Helpful Apps for Parents</p>
             {[
               { app: 'Google Translate', use: 'Camera translation of Japanese signs, menus, documents' },
               { app: 'NHK World Japan', use: 'English news + Japanese learning content for adults' },
@@ -342,11 +335,11 @@ export default function Kids() {
               { app: 'Line', use: 'Japan\'s main messaging app — connect with other parents, schools use it' },
               { app: 'Suica / PASMO app', use: 'Mobile IC card for trains and shopping' },
             ].map((a, i) => (
-              <div key={i} className="flex items-start gap-2 py-1.5 border-b border-yellow-100 last:border-0">
-                <div className="w-2 h-2 rounded-full bg-yellow-400 mt-2 flex-shrink-0" />
+              <div key={i} className="flex items-start gap-2 py-1.5 border-b border-gray-700 last:border-0">
+                <div className="w-2 h-2 rounded-full bg-amber-400 mt-2 flex-shrink-0" />
                 <div>
-                  <span className="text-sm font-semibold text-gray-800">{a.app}</span>
-                  <span className="text-sm text-gray-500"> — {a.use}</span>
+                  <span className="text-sm font-semibold text-gray-100">{a.app}</span>
+                  <span className="text-sm text-gray-400"> — {a.use}</span>
                 </div>
               </div>
             ))}
@@ -355,36 +348,21 @@ export default function Kids() {
       </Collapsible>
 
       {/* Language Tips */}
-      <Collapsible title="Language Tips for Kids" emoji="💬" color="orange">
+      <Collapsible title="Language Tips for Kids" emoji="💬" accentColor="amber" defaultOpen={false}>
         <InfoBox type="success">
           <strong>🌟 The best gift you can give your children</strong> is early Japanese language immersion. Children under 7 acquire languages at incredible speed. Don't worry about them "forgetting" English — they won't!
         </InfoBox>
         <div className="space-y-3">
           {[
-            {
-              tip: 'Speak English at home, Japanese at school',
-              detail: 'This is the most effective bilingual approach. Keep English strong at home. The school will handle Japanese.',
-            },
-            {
-              tip: 'Don\'t worry about the transition period',
-              detail: 'The first 1–2 months may be hard. Children sometimes go quiet at school. This is called the "silent period" — it\'s normal and healthy. They\'re absorbing the language.',
-            },
-            {
-              tip: 'Learn Japanese together as a family',
-              detail: 'Use apps like Duolingo, NHK\'s Japanese lessons, and picture books. Making it a family activity normalizes language learning.',
-            },
-            {
-              tip: 'Japanese cartoons are your friend',
-              detail: 'Shimajiro (しまじろう), Anpanman (アンパンマン), Doraemon — classic shows that Japanese kids love. Let the girls watch them!',
-            },
-            {
-              tip: 'Praise effort, not results',
-              detail: 'When Aranya says a Japanese word, celebrate it! Positive reinforcement builds confidence.',
-            },
+            { tip: 'Speak English at home, Japanese at school', detail: 'This is the most effective bilingual approach. Keep English strong at home. The school will handle Japanese.' },
+            { tip: 'Don\'t worry about the transition period', detail: 'The first 1–2 months may be hard. Children sometimes go quiet at school. This is called the "silent period" — it\'s normal and healthy. They\'re absorbing the language.' },
+            { tip: 'Learn Japanese together as a family', detail: 'Use apps like Duolingo, NHK\'s Japanese lessons, and picture books. Making it a family activity normalizes language learning.' },
+            { tip: 'Japanese cartoons are your friend', detail: 'Shimajiro (しまじろう), Anpanman (アンパンマン), Doraemon — classic shows that Japanese kids love. Let the girls watch them!' },
+            { tip: 'Praise effort, not results', detail: 'When Aranya says a Japanese word, celebrate it! Positive reinforcement builds confidence.' },
           ].map((t, i) => (
-            <div key={i} className="bg-white rounded-xl p-4 border border-orange-100">
-              <p className="font-semibold text-gray-800 text-sm mb-1">💡 {t.tip}</p>
-              <p className="text-gray-600 text-sm leading-relaxed">{t.detail}</p>
+            <div key={i} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+              <p className="font-semibold text-gray-100 text-sm mb-1">💡 {t.tip}</p>
+              <p className="text-gray-400 text-sm leading-relaxed">{t.detail}</p>
             </div>
           ))}
         </div>

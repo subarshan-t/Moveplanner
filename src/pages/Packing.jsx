@@ -1,344 +1,703 @@
-import React, { useState } from 'react'
-import { Package, ChevronDown, ChevronUp, Star, AlertCircle, CheckCircle2 } from 'lucide-react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { Camera, X, CheckCircle2, Circle, ChevronDown, ChevronUp, ShoppingBag, Eye } from 'lucide-react'
+import { saveItemPhoto, getItemPhoto, deleteItemPhoto, saveItemState, getItemState } from '../utils/storage.js'
 
-function Collapsible({ title, emoji, children, defaultOpen = true, color = 'orange' }) {
-  const [open, setOpen] = useState(defaultOpen)
-  const colors = {
-    orange: { header: 'from-orange-500 to-amber-400', border: 'border-orange-200' },
-    teal: { header: 'from-teal-500 to-cyan-400', border: 'border-teal-200' },
-    green: { header: 'from-green-500 to-emerald-400', border: 'border-green-200' },
-    blue: { header: 'from-blue-500 to-cyan-400', border: 'border-blue-200' },
-    purple: { header: 'from-purple-500 to-violet-400', border: 'border-purple-200' },
-    pink: { header: 'from-pink-500 to-rose-400', border: 'border-pink-200' },
-    red: { header: 'from-red-500 to-rose-400', border: 'border-red-200' },
+// ─── Shopping Data ────────────────────────────────────────────────────────────
+
+const shoppingData = [
+  {
+    personId: 'brindha',
+    personName: 'Brindha',
+    emoji: '👩‍🎓',
+    description: 'Professional woman, 2 years in Japan, Masters program',
+    categories: [
+      {
+        categoryId: 'brindha-work',
+        title: 'Work & University Wear',
+        icon: '👔',
+        buyInJapan: false,
+        items: [
+          { itemId: 'bw1', name: 'Formal blazers/jackets', qty: 3 },
+          { itemId: 'bw2', name: 'Dress trousers/tailored pants', qty: 4 },
+          { itemId: 'bw3', name: 'Formal blouses/tops', qty: 5 },
+          { itemId: 'bw4', name: 'Professional midi skirts', qty: 2 },
+          { itemId: 'bw5', name: 'Formal shoes (closed toe, heels or block heels)', qty: 2 },
+          { itemId: 'bw6', name: 'Smart casual tops for university', qty: 6 },
+          { itemId: 'bw7', name: 'Cardigans (layering for lecture halls)', qty: 3 },
+        ],
+      },
+      {
+        categoryId: 'brindha-casual',
+        title: 'Casual / Everyday',
+        icon: '👕',
+        buyInJapan: false,
+        items: [
+          { itemId: 'bc1', name: 'Casual t-shirts', qty: 6 },
+          { itemId: 'bc2', name: 'Casual tops/blouses', qty: 5 },
+          { itemId: 'bc3', name: 'Jeans (dark wash)', qty: 2 },
+          { itemId: 'bc4', name: 'Casual pants/trousers', qty: 3 },
+          { itemId: 'bc5', name: 'Casual dresses/summer dresses', qty: 4 },
+          { itemId: 'bc6', name: 'Shorts (for home/summer)', qty: 3 },
+          { itemId: 'bc7', name: 'Casual sneakers/flat shoes', qty: 2 },
+          { itemId: 'bc8', name: 'Sandals', qty: 2 },
+        ],
+      },
+      {
+        categoryId: 'brindha-winter',
+        title: 'Winter Essentials',
+        icon: '🧥',
+        buyInJapan: true,
+        items: [
+          { itemId: 'bwi1', name: 'Heavy winter coat', qty: 1 },
+          { itemId: 'bwi2', name: 'Medium jacket/parka', qty: 1 },
+          { itemId: 'bwi3', name: 'Thick knit sweaters', qty: 4 },
+          { itemId: 'bwi4', name: 'Thermal undershirts (heattech)', qty: 5 },
+          { itemId: 'bwi5', name: 'Thermal leggings (heattech)', qty: 4 },
+          { itemId: 'bwi6', name: 'Winter boots', qty: 1 },
+          { itemId: 'bwi7', name: 'Ankle boots', qty: 1 },
+          { itemId: 'bwi8', name: 'Scarf', qty: 2 },
+          { itemId: 'bwi9', name: 'Gloves', qty: 2 },
+          { itemId: 'bwi10', name: 'Beanie/winter hat', qty: 1 },
+        ],
+      },
+      {
+        categoryId: 'brindha-traditional',
+        title: 'Traditional / Formal',
+        icon: '🥻',
+        buyInJapan: false,
+        items: [
+          { itemId: 'bt1', name: 'Sarees (for cultural events, Sri Lankan gatherings)', qty: 3 },
+          { itemId: 'bt2', name: 'Salwar kameez sets', qty: 3 },
+          { itemId: 'bt3', name: 'Formal evening outfit', qty: 1 },
+        ],
+      },
+      {
+        categoryId: 'brindha-basics',
+        title: 'Basics & Undergarments',
+        icon: '🧦',
+        buyInJapan: false,
+        items: [
+          { itemId: 'bb1', name: 'Bras', qty: 8 },
+          { itemId: 'bb2', name: 'Underwear sets', qty: 12 },
+          { itemId: 'bb3', name: 'Socks', qty: 10 },
+          { itemId: 'bb4', name: 'Tights/stockings', qty: 5 },
+          { itemId: 'bb5', name: 'Activewear/gym set', qty: 2 },
+          { itemId: 'bb6', name: 'Sleepwear/pyjamas', qty: 4 },
+          { itemId: 'bb7', name: 'Home wear (comfortable indoor clothes)', qty: 3 },
+        ],
+      },
+      {
+        categoryId: 'brindha-bags',
+        title: 'Bags & Accessories',
+        icon: '👜',
+        buyInJapan: false,
+        items: [
+          { itemId: 'bag1', name: 'University/laptop backpack', qty: 1 },
+          { itemId: 'bag2', name: 'Professional tote bag', qty: 1 },
+          { itemId: 'bag3', name: 'Casual handbag', qty: 2 },
+          { itemId: 'bag4', name: 'Small crossbody bag', qty: 1 },
+          { itemId: 'bag5', name: 'Umbrella (buy quality one in Japan)', qty: 1 },
+          { itemId: 'bag6', name: 'Belt', qty: 2 },
+        ],
+      },
+      {
+        categoryId: 'brindha-rain',
+        title: 'Rain Gear',
+        icon: '☔',
+        buyInJapan: false,
+        items: [
+          { itemId: 'br1', name: 'Raincoat/waterproof jacket', qty: 1 },
+        ],
+      },
+    ],
+  },
+  {
+    personId: 'malaka',
+    personName: 'Malaka',
+    emoji: '👨',
+    description: 'Husband, casual + job-seeking, 2 years',
+    categories: [
+      {
+        categoryId: 'malaka-smart',
+        title: 'Smart Casual / Job Seeking',
+        icon: '👔',
+        buyInJapan: false,
+        items: [
+          { itemId: 'ms1', name: 'Business casual shirts (button-up)', qty: 5 },
+          { itemId: 'ms2', name: 'Smart trousers/chinos', qty: 3 },
+          { itemId: 'ms3', name: 'Blazer', qty: 1 },
+          { itemId: 'ms4', name: 'Dress shoes', qty: 1 },
+          { itemId: 'ms5', name: 'Smart casual shoes', qty: 1 },
+        ],
+      },
+      {
+        categoryId: 'malaka-casual',
+        title: 'Casual Everyday',
+        icon: '👕',
+        buyInJapan: false,
+        items: [
+          { itemId: 'mc1', name: 'T-shirts', qty: 8 },
+          { itemId: 'mc2', name: 'Casual shirts', qty: 4 },
+          { itemId: 'mc3', name: 'Jeans', qty: 3 },
+          { itemId: 'mc4', name: 'Shorts', qty: 4 },
+          { itemId: 'mc5', name: 'Casual sneakers', qty: 2 },
+          { itemId: 'mc6', name: 'Flip flops/sandals', qty: 1 },
+        ],
+      },
+      {
+        categoryId: 'malaka-winter',
+        title: 'Winter',
+        icon: '🧥',
+        buyInJapan: true,
+        items: [
+          { itemId: 'mwi1', name: 'Winter coat', qty: 1 },
+          { itemId: 'mwi2', name: 'Knit sweaters', qty: 3 },
+          { itemId: 'mwi3', name: 'Thermal undershirts', qty: 4 },
+          { itemId: 'mwi4', name: 'Thermal leggings', qty: 3 },
+          { itemId: 'mwi5', name: 'Winter boots or waterproof shoes', qty: 1 },
+          { itemId: 'mwi6', name: 'Scarf', qty: 1 },
+          { itemId: 'mwi7', name: 'Gloves', qty: 1 },
+        ],
+      },
+      {
+        categoryId: 'malaka-basics',
+        title: 'Basics',
+        icon: '🧦',
+        buyInJapan: false,
+        items: [
+          { itemId: 'mb1', name: 'Underwear', qty: 10 },
+          { itemId: 'mb2', name: 'Socks', qty: 10 },
+          { itemId: 'mb3', name: 'Activewear', qty: 2 },
+          { itemId: 'mb4', name: 'Sleepwear', qty: 3 },
+          { itemId: 'mb5', name: 'Home wear', qty: 2 },
+        ],
+      },
+    ],
+  },
+  {
+    personId: 'aranya',
+    personName: 'Aranya',
+    emoji: '👧',
+    description: '4 years old, starting yochien/nursery',
+    categories: [
+      {
+        categoryId: 'aranya-school',
+        title: 'School/Nursery Wear',
+        icon: '🏫',
+        buyInJapan: false,
+        items: [
+          { itemId: 'as1', name: 'Comfortable easy-on tops/t-shirts for school', qty: 8 },
+          { itemId: 'as2', name: 'Comfortable elastic-waist pants/leggings', qty: 6 },
+          { itemId: 'as3', name: 'School pinafore dress', qty: 2 },
+          { itemId: 'as4', name: 'Indoor shoes (uwabaki — white canvas, required at Japanese schools)', qty: 1 },
+          { itemId: 'as5', name: 'Outdoor shoes/sneakers (Velcro closure)', qty: 2 },
+        ],
+      },
+      {
+        categoryId: 'aranya-casual',
+        title: 'Casual',
+        icon: '👕',
+        buyInJapan: false,
+        items: [
+          { itemId: 'ac1', name: 'Casual dresses', qty: 4 },
+          { itemId: 'ac2', name: 'Shorts', qty: 3 },
+          { itemId: 'ac3', name: 'Casual tops', qty: 6 },
+          { itemId: 'ac4', name: 'Sandals', qty: 1 },
+        ],
+      },
+      {
+        categoryId: 'aranya-winter',
+        title: 'Winter',
+        icon: '🧥',
+        buyInJapan: true,
+        items: [
+          { itemId: 'awi1', name: 'Warm winter coat with hood', qty: 1 },
+          { itemId: 'awi2', name: 'Fleece zip-up', qty: 2 },
+          { itemId: 'awi3', name: 'Knit sweaters', qty: 3 },
+          { itemId: 'awi4', name: 'Thermal set (top + bottom)', qty: 3 },
+          { itemId: 'awi5', name: 'Winter boots', qty: 1 },
+          { itemId: 'awi6', name: 'Gloves (kids mittens)', qty: 2 },
+          { itemId: 'awi7', name: 'Winter hat/beanie', qty: 2 },
+        ],
+      },
+      {
+        categoryId: 'aranya-basics',
+        title: 'Basics',
+        icon: '🧦',
+        buyInJapan: false,
+        items: [
+          { itemId: 'ab1', name: 'Underwear', qty: 10 },
+          { itemId: 'ab2', name: 'Socks', qty: 10 },
+          { itemId: 'ab3', name: 'Pyjamas/sleepwear', qty: 5 },
+          { itemId: 'ab4', name: 'Home wear', qty: 3 },
+        ],
+      },
+      {
+        categoryId: 'aranya-special',
+        title: 'Special Items for Japanese School',
+        icon: '🎒',
+        buyInJapan: false,
+        items: [
+          { itemId: 'asp1', name: 'Randoseru-style backpack or school bag', qty: 1 },
+          { itemId: 'asp2', name: 'Indoor slipper bag', qty: 1 },
+          { itemId: 'asp3', name: 'Smock/art apron', qty: 2 },
+          { itemId: 'asp4', name: 'Change of clothes sets to keep at school', qty: 2 },
+        ],
+      },
+    ],
+  },
+  {
+    personId: 'aradhya',
+    personName: 'Aradhya',
+    emoji: '👶',
+    description: '2 years old, hoikuen/daycare',
+    categories: [
+      {
+        categoryId: 'aradhya-daycare',
+        title: 'Daycare Essentials',
+        icon: '🏫',
+        buyInJapan: false,
+        note: 'Everything MUST be labelled with her name!',
+        items: [
+          { itemId: 'ad1', name: 'Easy-on/off t-shirts', qty: 10 },
+          { itemId: 'ad2', name: 'Elastic waist pants', qty: 8 },
+          { itemId: 'ad3', name: 'One-piece rompers', qty: 2 },
+          { itemId: 'ad4', name: 'Socks', qty: 15 },
+          { itemId: 'ad5', name: 'Underwear (for toilet training)', qty: 12 },
+        ],
+      },
+      {
+        categoryId: 'aradhya-casual',
+        title: 'Casual / Everyday',
+        icon: '👕',
+        buyInJapan: false,
+        items: [
+          { itemId: 'aac1', name: 'Casual dresses', qty: 4 },
+          { itemId: 'aac2', name: 'Shorts', qty: 4 },
+          { itemId: 'aac3', name: 'Casual tops', qty: 6 },
+          { itemId: 'aac4', name: 'Sandals', qty: 1 },
+          { itemId: 'aac5', name: 'Sneakers (Velcro)', qty: 2 },
+        ],
+      },
+      {
+        categoryId: 'aradhya-winter',
+        title: 'Winter',
+        icon: '🧥',
+        buyInJapan: true,
+        items: [
+          { itemId: 'aawi1', name: 'Winter puffer coat', qty: 1 },
+          { itemId: 'aawi2', name: 'Fleece zip-up', qty: 2 },
+          { itemId: 'aawi3', name: 'Warm sweaters', qty: 3 },
+          { itemId: 'aawi4', name: 'Thermal set', qty: 3 },
+          { itemId: 'aawi5', name: 'Winter boots', qty: 1 },
+          { itemId: 'aawi6', name: 'Mittens', qty: 3 },
+          { itemId: 'aawi7', name: 'Winter hat', qty: 2 },
+        ],
+      },
+      {
+        categoryId: 'aradhya-basics',
+        title: 'Basics',
+        icon: '🧦',
+        buyInJapan: false,
+        items: [
+          { itemId: 'aab1', name: 'Pyjamas/sleepwear', qty: 6 },
+          { itemId: 'aab2', name: 'Bibs', qty: 5 },
+          { itemId: 'aab3', name: 'Home wear', qty: 4 },
+        ],
+      },
+    ],
+  },
+]
+
+// ─── Photo slot component ─────────────────────────────────────────────────────
+
+function PhotoSlot({ personId, categoryId, itemId, slotIndex, onView }) {
+  const [photo, setPhoto] = useState(null)
+  const fileRef = useRef(null)
+  const storageKey = `${personId}__${categoryId}__${itemId}__${slotIndex}`
+
+  useEffect(() => {
+    getItemPhoto(personId, categoryId, `${itemId}__${slotIndex}`)
+      .then(p => setPhoto(p))
+      .catch(() => {})
+  }, [personId, categoryId, itemId, slotIndex])
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = async (ev) => {
+      const dataUrl = ev.target.result
+      await saveItemPhoto(personId, categoryId, `${itemId}__${slotIndex}`, dataUrl)
+      setPhoto(dataUrl)
+    }
+    reader.readAsDataURL(file)
   }
-  const c = colors[color]
-  return (
-    <div className={`rounded-2xl border-2 ${c.border} overflow-hidden mb-5 bg-white`}>
-      <button className="w-full text-left" onClick={() => setOpen(!open)}>
-        <div className={`bg-gradient-to-r ${c.header} px-5 py-4 flex items-center gap-3`}>
-          <span className="text-2xl">{emoji}</span>
-          <h2 className="font-display font-bold text-white text-lg flex-1">{title}</h2>
-          {open ? <ChevronUp className="w-5 h-5 text-white/80" /> : <ChevronDown className="w-5 h-5 text-white/80" />}
+
+  const handleRemove = async (e) => {
+    e.stopPropagation()
+    await deleteItemPhoto(personId, categoryId, `${itemId}__${slotIndex}`)
+    setPhoto(null)
+  }
+
+  if (photo) {
+    return (
+      <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-emerald-500/50 flex-shrink-0 group cursor-pointer"
+        onClick={() => onView(photo)}>
+        <img src={photo} alt="item" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+          <Eye className="w-3 h-3 text-white" />
         </div>
-      </button>
-      {open && <div className="p-5">{children}</div>}
-    </div>
-  )
-}
-
-function PackItem({ emoji, text, note, important }) {
-  return (
-    <div className={`flex items-start gap-2.5 py-2.5 border-b border-gray-100 last:border-0 ${important ? 'bg-orange-50 -mx-1 px-1 rounded-lg' : ''}`}>
-      <span className="text-lg flex-shrink-0">{emoji}</span>
-      <div className="flex-1">
-        <span className={`text-sm ${important ? 'font-semibold text-orange-800' : 'text-gray-700'}`}>{text}</span>
-        {note && <p className="text-xs text-gray-400 mt-0.5 leading-tight">{note}</p>}
+        <button
+          onClick={handleRemove}
+          className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-bl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <X className="w-2.5 h-2.5 text-white" />
+        </button>
       </div>
-      {important && <span className="text-xs font-bold text-orange-500 bg-orange-100 px-2 py-0.5 rounded-full flex-shrink-0">Must!</span>}
+    )
+  }
+
+  return (
+    <button
+      onClick={() => fileRef.current?.click()}
+      className="w-12 h-12 rounded-lg border-2 border-dashed border-gray-600 flex-shrink-0 flex items-center justify-center hover:border-amber-500/60 hover:bg-amber-500/5 transition-all group"
+    >
+      <Camera className="w-4 h-4 text-gray-600 group-hover:text-amber-400 transition-colors" />
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+    </button>
+  )
+}
+
+// ─── Item Row ─────────────────────────────────────────────────────────────────
+
+function ItemRow({ personId, categoryId, item, checked, onToggle, onView }) {
+  const slots = Array.from({ length: Math.min(item.qty, 6) })
+
+  return (
+    <div className={`flex items-start gap-3 p-3 rounded-xl transition-all group ${checked ? 'opacity-60' : 'hover:bg-gray-800/60'}`}>
+      {/* Checkbox */}
+      <button
+        onClick={() => onToggle(item.itemId)}
+        className="flex-shrink-0 mt-0.5"
+      >
+        {checked
+          ? <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+          : <Circle className="w-5 h-5 text-gray-600 group-hover:text-gray-400 transition-colors" />
+        }
+      </button>
+
+      {/* Name + qty */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-sm ${checked ? 'line-through text-gray-500' : 'text-gray-200'}`}>
+            {item.name}
+          </span>
+          <span className="text-xs bg-gray-700 text-gray-400 px-1.5 py-0.5 rounded-full flex-shrink-0">
+            ×{item.qty}
+          </span>
+        </div>
+
+        {/* Photo slots */}
+        <div className="flex gap-1.5 mt-2 flex-wrap">
+          {slots.map((_, i) => (
+            <PhotoSlot
+              key={i}
+              personId={personId}
+              categoryId={categoryId}
+              itemId={item.itemId}
+              slotIndex={i}
+              onView={onView}
+            />
+          ))}
+          {item.qty > 6 && (
+            <div className="w-12 h-12 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-center flex-shrink-0">
+              <span className="text-xs text-gray-500">+{item.qty - 6}</span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
 
-export default function Packing() {
+// ─── Category Section ────────────────────────────────────────────────────────
+
+function CategorySection({ personId, category, checked, onToggle, onView }) {
+  const [open, setOpen] = useState(true)
+  const catChecked = category.items.filter(it => checked[it.itemId]).length
+  const catTotal = category.items.length
+
   return (
-    <div className="page-container p-4 lg:p-8 max-w-4xl mx-auto">
+    <div className="mb-4">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-gray-800/50 transition-colors"
+      >
+        <span className="text-base">{category.icon}</span>
+        <span className="font-semibold text-gray-100 flex-1 text-left text-sm">{category.title}</span>
+        {category.buyInJapan && (
+          <span className="text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full">
+            Buy in Japan
+          </span>
+        )}
+        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+          catChecked === catTotal ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-800 text-gray-400'
+        }`}>
+          {catChecked}/{catTotal}
+        </span>
+        {open ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+      </button>
+
+      {/* mini bar */}
+      <div className="h-0.5 mx-3 bg-gray-800 rounded-full mb-1">
+        <div
+          className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+          style={{ width: catTotal > 0 ? `${(catChecked / catTotal) * 100}%` : '0%' }}
+        />
+      </div>
+
+      {category.note && open && (
+        <div className="mx-3 mb-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+          ⚠️ {category.note}
+        </div>
+      )}
+
+      {open && (
+        <div className="space-y-0.5">
+          {category.items.map(item => (
+            <ItemRow
+              key={item.itemId}
+              personId={personId}
+              categoryId={category.categoryId}
+              item={item}
+              checked={checked[item.itemId] || false}
+              onToggle={onToggle}
+              onView={onView}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Photo Lightbox ──────────────────────────────────────────────────────────
+
+function PhotoLightbox({ photo, onClose }) {
+  if (!photo) return null
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="relative max-w-lg w-full">
+        <img src={photo} alt="Full view" className="w-full rounded-2xl shadow-2xl" />
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Budget Section ───────────────────────────────────────────────────────────
+
+function BudgetSection() {
+  const budgetItems = [
+    { person: 'Brindha', emoji: '👩‍🎓', color: 'text-amber-400', low: 50000, high: 80000, note: 'Professional wardrobe + basics. Winter in Japan.' },
+    { person: 'Malaka', emoji: '👨', color: 'text-blue-400', low: 25000, high: 40000, note: 'Smart casual + everyday. Winter in Japan.' },
+    { person: 'Aranya', emoji: '👧', color: 'text-pink-400', low: 15000, high: 25000, note: 'School + casual. Most winter bought in Japan.' },
+    { person: 'Aradhya', emoji: '👶', color: 'text-purple-400', low: 10000, high: 20000, note: 'Mostly buy in Japan (Nishimatsuya). Bring favorites.' },
+  ]
+  const totalLow = budgetItems.reduce((s, i) => s + i.low, 0)
+  const totalHigh = budgetItems.reduce((s, i) => s + i.high, 0)
+
+  return (
+    <div className="mt-8 bg-gray-900 border border-gray-800 rounded-2xl p-5">
+      <h2 className="font-bold text-gray-100 text-lg mb-1 flex items-center gap-2">
+        <span>💴</span> Shopping Budget Tracker
+      </h2>
+      <p className="text-gray-400 text-sm mb-4">Estimated clothing/shopping budget from your 2-month setup allowance</p>
+
+      <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-4">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-sm font-semibold text-amber-400">Monthly Stipend</span>
+          <span className="text-xl font-bold text-amber-400">¥150,000/month</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-gray-400">Estimated one-time shopping budget (first 2 months setup)</span>
+          <span className="text-base font-bold text-amber-300">≈ ¥150,000</span>
+        </div>
+      </div>
+
+      <div className="space-y-2 mb-4">
+        {budgetItems.map((item, i) => (
+          <div key={i} className="bg-gray-800 rounded-xl p-3 border border-gray-700 flex items-center gap-3">
+            <span className="text-xl">{item.emoji}</span>
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-0.5">
+                <span className={`font-semibold text-sm ${item.color}`}>{item.person}</span>
+                <span className={`text-sm font-bold ${item.color}`}>¥{item.low.toLocaleString()}–{item.high.toLocaleString()}</span>
+              </div>
+              <p className="text-xs text-gray-400">{item.note}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-gray-800 rounded-xl p-3 border border-emerald-500/30 flex items-center justify-between">
+        <span className="font-bold text-gray-100">Total Estimate</span>
+        <div className="text-right">
+          <span className="font-bold text-emerald-400 text-lg">¥{totalLow.toLocaleString()}–{totalHigh.toLocaleString()}</span>
+          <p className="text-xs text-gray-400">Within 2-month setup budget</p>
+        </div>
+      </div>
+
+      <div className="mt-4 bg-teal-500/10 border border-teal-500/20 rounded-xl p-4">
+        <p className="font-semibold text-teal-400 text-sm mb-2">💡 Shopping Tips</p>
+        <div className="space-y-1.5">
+          {[
+            'Buy winter coats, boots, and thermals IN JAPAN — Uniqlo Heattech is excellent',
+            'Nishimatsuya & Akachan Honpo for kids: great quality, affordable prices',
+            'Don Quijote, GU, and Uniqlo for everyday basics in Japan',
+            'Bring professional wear from Sri Lanka — harder to find in Japan for South Asian body types',
+            'Sri Lanka: professional blouses, sarees, salwar kameez — these are harder to find in Japan',
+          ].map((tip, i) => (
+            <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
+              <span className="text-teal-400 mt-0.5 flex-shrink-0">•</span>
+              {tip}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+export default function Shopping() {
+  const [activePerson, setActivePerson] = useState('brindha')
+  const [checked, setChecked] = useState(() => getItemState('shopping-checked', {}))
+  const [lightboxPhoto, setLightboxPhoto] = useState(null)
+
+  // Persist checked state
+  useEffect(() => {
+    saveItemState('shopping-checked', checked)
+  }, [checked])
+
+  const toggleItem = useCallback((itemId) => {
+    setChecked(prev => ({ ...prev, [itemId]: !prev[itemId] }))
+  }, [])
+
+  // Compute per-person progress
+  const personProgress = shoppingData.map(person => {
+    const allItems = person.categories.flatMap(c => c.items)
+    const done = allItems.filter(it => checked[it.itemId]).length
+    return { personId: person.personId, done, total: allItems.length }
+  })
+
+  const activePD = shoppingData.find(p => p.personId === activePerson)
+  const activeProgress = personProgress.find(p => p.personId === activePerson)
+
+  return (
+    <div className="p-4 lg:p-8 max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-2xl">🎒</span>
-          <h1 className="font-display font-bold text-3xl text-gray-800">Packing Guide</h1>
+          <ShoppingBag className="w-7 h-7 text-amber-400" />
+          <h1 className="font-bold text-3xl text-gray-100">Shopping & Packing Planner</h1>
         </div>
-        <p className="text-gray-500 text-base">What to bring, what to leave, what to buy in Japan</p>
+        <p className="text-gray-400 text-base">Track what you've bought — check items off, upload photos of what you have ready</p>
       </div>
 
-      <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl p-4 mb-6">
-        <p className="font-bold text-orange-800 mb-1">🌸 General Rule</p>
-        <p className="text-sm text-gray-700 leading-relaxed">
-          Japan has excellent quality goods at every price point. <strong>You can buy almost everything in Japan</strong> — often cheaper than Sri Lanka (especially household items, electronics, clothing). Focus on bringing what's uniquely Sri Lankan, documents, medications, and comfort items. Don't overpack!
-        </p>
+      {/* Per-person summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        {shoppingData.map((person) => {
+          const prog = personProgress.find(p => p.personId === person.personId)
+          const pct = prog.total > 0 ? Math.round((prog.done / prog.total) * 100) : 0
+          const isActive = activePerson === person.personId
+          return (
+            <button
+              key={person.personId}
+              onClick={() => setActivePerson(person.personId)}
+              className={`rounded-2xl p-4 border-2 transition-all duration-200 text-left ${
+                isActive
+                  ? 'bg-amber-500/15 border-amber-500/60'
+                  : 'bg-gray-900 border-gray-800 hover:border-gray-700'
+              }`}
+            >
+              <div className="text-2xl mb-1">{person.emoji}</div>
+              <p className={`font-bold text-sm mb-1 ${isActive ? 'text-amber-400' : 'text-gray-100'}`}>
+                {person.personName}
+              </p>
+              <div className="h-1.5 bg-gray-800 rounded-full mb-1 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-400">{prog.done}/{prog.total} items</p>
+            </button>
+          )
+        })}
       </div>
 
-      {/* Documents - MOST IMPORTANT */}
-      <Collapsible title="Documents — Carry-On ONLY!" emoji="📄" color="orange" defaultOpen={true}>
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-          <p className="font-bold text-red-700 mb-1">⚠️ Critical: Keep ALL documents in your carry-on bag!</p>
-          <p className="text-sm text-gray-700">Never check important documents in your hold luggage. These are irreplaceable.</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-orange-100">
-          <PackItem emoji="📋" text="Certificate of Eligibility (COE) — original!" note="This is what gets you through Japanese immigration. Guard it with your life." important />
-          <PackItem emoji="🛂" text="Passport with student visa" important />
-          <PackItem emoji="📸" text="Extra passport photos (at least 10)" note="Needed for various applications in Japan" />
-          <PackItem emoji="📜" text="Apostilled marriage certificate — original + certified copies" />
-          <PackItem emoji="📜" text="Kids' apostilled birth certificates — originals + copies" />
-          <PackItem emoji="🎓" text="University acceptance letter / enrollment documents" />
-          <PackItem emoji="🏥" text="Vaccination records for whole family (in English)" />
-          <PackItem emoji="💉" text="Kids' medical records / vaccination booklets" />
-          <PackItem emoji="🦷" text="Dental records if any ongoing treatment" />
-          <PackItem emoji="💊" text="Prescription letters for any medications you're bringing" />
-          <PackItem emoji="🎓" text="Degree certificates and transcripts" />
-          <PackItem emoji="💳" text="International driving license (if you have one)" note="May be useful later" />
-          <PackItem emoji="📱" text="Digital copies of ALL documents (Google Drive / encrypted storage)" important />
-        </div>
-      </Collapsible>
-
-      {/* Medications */}
-      <Collapsible title="Medications & Health" emoji="💊" color="blue" defaultOpen={false}>
-        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 mb-4">
-          <p className="text-sm text-gray-700 leading-relaxed">
-            <strong>Japan has strict medication import rules.</strong> Some common medications in Sri Lanka are controlled substances in Japan.
-            Bring a supply of your regular medications (3–6 months recommended). Carry prescriptions translated to English.
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 border border-blue-100">
-          <PackItem emoji="💊" text="Prescription medications — 3–6 month supply" note="Bring letter from doctor listing medication names and dosages" important />
-          <PackItem emoji="🌡️" text="Familiar pain relievers (Panadol/Paracetamol)" note="Japan has different brand names; get what you know works" />
-          <PackItem emoji="🤧" text="Cold/flu remedies you trust" note="Japanese pharmacies have great options but different brands" />
-          <PackItem emoji="🤢" text="Antacids / digestive remedies" note="Diet change can cause stomach issues initially" />
-          <PackItem emoji="🩹" text="Antiseptic cream, bandages" note="Basic first aid kit" />
-          <PackItem emoji="🌿" text="Ayurvedic or herbal remedies you regularly use" note="Hard to find in Japan" important />
-          <PackItem emoji="💊" text="Vitamin supplements you use regularly" />
-          <PackItem emoji="🧴" text="Mosquito repellent (Japan has mosquitoes in summer)" />
-          <PackItem emoji="☀️" text="Sunscreen you like (Japan has good options but check ingredients)" />
-          <PackItem emoji="🧴" text="Preferred moisturizer / skincare for first months" note="Japanese dry winters can affect skin" />
-
-          <div className="mt-4 bg-amber-50 rounded-xl p-3 border border-amber-200">
-            <p className="font-semibold text-amber-800 text-sm mb-1">⚠️ For Kids Especially:</p>
-            {[
-              { item: 'Calpol / Children\'s Paracetamol', note: 'Japanese equivalent exists but different concentration' },
-              { item: 'Children\'s antihistamine if they have allergies', note: '' },
-              { item: 'Teething gel for Aradhya if needed', note: '' },
-              { item: 'Diaper rash cream (Drapolene, Sudocrem)', note: 'Japanese brands available too' },
-              { item: 'Preferred baby wipes for Aradhya', note: '' },
-            ].map((m, i) => (
-              <p key={i} className="text-sm text-gray-700 flex items-center gap-2 py-1 border-b border-amber-100 last:border-0">
-                <span className="text-amber-500">→</span>
-                <span><strong>{m.item}</strong>{m.note ? ` — ${m.note}` : ''}</span>
-              </p>
-            ))}
-          </div>
-        </div>
-      </Collapsible>
-
-      {/* Sri Lankan Items */}
-      <Collapsible title="Sri Lankan Items You'll Miss" emoji="🇱🇰" color="teal" defaultOpen={false}>
-        <div className="bg-teal-50 rounded-xl p-4 border border-teal-100 mb-3">
-          <p className="text-sm text-gray-700 leading-relaxed">
-            Tokyo has excellent South Asian grocery stores (especially in Edogawa ward and some Indian neighborhoods), but specific Sri Lankan items can be hard to find. Stock up!
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 border border-teal-100">
-          <p className="font-semibold text-gray-700 mb-2 text-sm">🌶️ Spices & Condiments</p>
-          <PackItem emoji="🌶️" text="Sri Lankan curry powder (you won't find the right blend!)" important />
-          <PackItem emoji="🌶️" text="Roasted curry powder" important />
-          <PackItem emoji="🟤" text="Goraka / gambooge (essential for fish curries)" important />
-          <PackItem emoji="🌿" text="Dried Maldive fish" note="Sometimes available in Japanese Asian stores" />
-          <PackItem emoji="🥥" text="Coconut milk powder / coconut cream packets" note="Canned coconut milk available in Japan" />
-          <PackItem emoji="🫙" text="Favourite pickle / achar" note="Indonesian/Thai pickles are similar" />
-          <PackItem emoji="🌿" text="Moringa (drumstick) powder" />
-
-          <p className="font-semibold text-gray-700 mb-2 text-sm mt-4">🍪 Snacks & Comfort Food</p>
-          <PackItem emoji="🍪" text="Favourite Sri Lankan biscuits (Kist, Munchee, etc.)" note="Homesickness hits hardest through food!" />
-          <PackItem emoji="🫙" text="Seeni sambol / lunu miris paste in jar" note="The real stuff can't be replicated" />
-          <PackItem emoji="🧁" text="Kavum, kokis, or other traditional snacks for special occasions" />
-
-          <p className="font-semibold text-gray-700 mb-2 text-sm mt-4">✨ Personal Items</p>
-          <PackItem emoji="🧵" text="A few saris or traditional wear for special occasions" note="Japan has many formal occasions!" />
-          <PackItem emoji="📿" text="Religious items — temple offerings, etc." note="Hard to find exact versions in Japan" />
-          <PackItem emoji="📸" text="Printed family photos for the apartment" note="Makes your Japanese home feel like home" important />
-        </div>
-
-        <div className="bg-green-50 rounded-xl p-4 border border-green-100 mt-3">
-          <p className="font-semibold text-green-800 text-sm mb-1">🛒 Where to find South Asian items in Tokyo:</p>
-          <ul className="text-sm text-gray-700 space-y-1">
-            <li>• <strong>National Azabu</strong> (Minami-Azabu) — international supermarket</li>
-            <li>• <strong>Hanamasa</strong> — bulk food store with international items</li>
-            <li>• <strong>Jupiter Coffee</strong> — imported goods</li>
-            <li>• <strong>Amazon Japan</strong> — surprisingly good for imported spices</li>
-            <li>• <strong>Koenji / Edogawa area</strong> — has Indian/Sri Lankan grocery stores</li>
-          </ul>
-        </div>
-      </Collapsible>
-
-      {/* Clothing */}
-      <Collapsible title="Clothing — What to Pack" emoji="👗" color="purple" defaultOpen={false}>
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
-            <p className="font-bold text-purple-800 mb-2 text-sm">🌸 Brindha's Wardrobe</p>
-            {[
-              'Everyday casual clothes (you wear now)',
-              '1-2 formal/smart outfits (job, university events)',
-              'Underwear (Japanese sizes run small)',
-              'Comfortable walking shoes (Tokyo = lots of walking!)',
-              'One warm jacket for autumn',
-            ].map((item, i) => (
-              <p key={i} className="text-xs text-gray-700 flex items-center gap-1.5 py-1 border-b border-purple-50 last:border-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0" />
-                {item}
-              </p>
-            ))}
-          </div>
-          <div className="bg-pink-50 rounded-xl p-4 border border-pink-100">
-            <p className="font-bold text-pink-800 mb-2 text-sm">👧 Kids Clothing</p>
-            {[
-              'Pack 2 sizes up — kids grow fast!',
-              'Comfortable play clothes × many sets',
-              'One "nice" outfit for each girl',
-              'Sturdy shoes + indoor shoes',
-              'Warm layer (sweater/jacket)',
-            ].map((item, i) => (
-              <p key={i} className="text-xs text-gray-700 flex items-center gap-1.5 py-1 border-b border-pink-50 last:border-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-pink-400 flex-shrink-0" />
-                {item}
-              </p>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
-          <p className="font-bold text-amber-800 mb-2 text-sm">🌡️ Tokyo Weather Guide — Pack Accordingly</p>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { season: 'June (arrival)', temp: '22–28°C', note: 'Warm, humid. Light clothes OK.' },
-              { season: 'July–August', temp: '28–35°C', note: 'Hot & humid. Lightest clothes!' },
-              { season: 'September', temp: '24–30°C', note: 'Still warm. Light layers.' },
-              { season: 'October–November', temp: '14–22°C', note: 'Need light jacket + sweater.' },
-              { season: 'December–February', temp: '2–12°C', note: 'COLD. Heavy coat needed (buy in Japan).' },
-              { season: 'March–April', temp: '8–18°C', note: 'Cherry blossom season! Cool, lovely.' },
-            ].map((w, i) => (
-              <div key={i} className="bg-white rounded-lg p-2">
-                <p className="text-xs font-bold text-gray-800">{w.season}</p>
-                <p className="text-xs text-orange-600 font-semibold">{w.temp}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{w.note}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-3 bg-green-50 rounded-xl p-3 border border-green-100">
-          <p className="text-sm text-gray-700">
-            <strong>💡 Pro tip:</strong> Don't pack heavy winter clothes! Japanese winter coats, boots, and layers are excellent quality and often cheaper than you'd expect. Buy them in Japan when the season changes (autumn sales are great). Save the suitcase space for what you can't buy there.
-          </p>
-        </div>
-      </Collapsible>
-
-      {/* For Kids Specifically */}
-      <Collapsible title="Kids' Essentials to Pack" emoji="👶" color="pink" defaultOpen={false}>
-        <div className="bg-white rounded-xl p-4 border border-pink-100 mb-3">
-          <p className="font-semibold text-pink-800 mb-2 text-sm">💕 Comfort & Emotional Wellbeing</p>
-          <PackItem emoji="🧸" text="Aradhya's favorite stuffed animal / comfort object" note="Non-negotiable! This is her security in a new place." important />
-          <PackItem emoji="🦁" text="Aranya's favorite toy(s) — a few, not all" note="She'll make new friends and discover new toys, but familiar ones help at first" important />
-          <PackItem emoji="📚" text="3–5 favorite storybooks in Sinhala or English" note="Bedtime stories in the familiar language are comforting" />
-          <PackItem emoji="🎨" text="Small art kit (crayons, stickers)" note="Keeps them entertained on the long flight and first days" />
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-pink-100 mb-3">
-          <p className="font-semibold text-pink-800 mb-2 text-sm">🍼 Practical Items for Aradhya (2 years)</p>
-          <PackItem emoji="🧴" text="Preferred baby shampoo / wash (travel size to start)" note="Japanese baby products are excellent — you'll find replacements" />
-          <PackItem emoji="👶" text="5–7 days of diapers / pull-ups" note="Buy Japanese brands (Merries, Moony — highly rated!)" />
-          <PackItem emoji="🥣" text="Any preferred sippy cup / eating utensils" />
-          <PackItem emoji="🛌" text="Portable travel bed if she has one (inflatable)" note="Japanese apartments can have minimal furniture initially" />
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-pink-100">
-          <p className="font-semibold text-pink-800 mb-2 text-sm">🎒 Practical Items for Aranya (4 years)</p>
-          <PackItem emoji="📓" text="Her Lyceum school report / portfolio if available" note="Good to show new school for context" />
-          <PackItem emoji="✏️" text="Pencil case with familiar stationery" />
-          <PackItem emoji="🖼️" text="A drawing she made for the new room" note="Decorating her own space gives her ownership" />
-        </div>
-
-        <div className="mt-3 bg-teal-50 rounded-xl p-3 border border-teal-100">
-          <p className="text-sm font-semibold text-teal-800 mb-1">✈️ Flight Tips with Kids</p>
-          <ul className="space-y-1">
-            {[
-              'Book a bassinet seat for Aradhya on long flights (request when booking)',
-              'Bring lots of snacks from home — familiar tastes reduce meltdowns',
-              'Download offline shows/apps before the flight',
-              'Pack a change of clothes for each kid + yourself in carry-on',
-              'Small new toy as a "flight surprise" to keep them engaged',
-            ].map((tip, i) => (
-              <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-                <span className="text-teal-500 mt-0.5">•</span>
-                {tip}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </Collapsible>
-
-      {/* Leave Behind */}
-      <Collapsible title="Leave Behind — Don't Bother Packing" emoji="🚫" color="red" defaultOpen={false}>
-        <div className="bg-red-50 rounded-xl p-4 border border-red-100 mb-3">
-          <p className="text-sm text-gray-700 leading-relaxed">
-            Suitcase space is precious. These items are better bought in Japan — cheaper, better quality, or simply not worth the shipping cost.
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-red-100">
-          {[
-            { item: 'Furniture of any kind', reason: 'Japanese apartments come furnished or furniture is cheap to buy/rent' },
-            { item: 'Large kitchen appliances', reason: 'Japan uses 100V electricity (same plug shape as Sri Lanka but different voltage) — some appliances may not work safely' },
-            { item: 'Winter clothes (jackets, boots)', reason: 'Buy in Japan for actual Japanese weather. Much better selection and sizing.' },
-            { item: 'Most baby gear (stroller, car seat)', reason: 'Available cheaply second-hand in Japan. Not worth the airline oversize fees.' },
-            { item: 'Bulk toiletries', reason: 'Japan has amazing, affordable toiletries at every konbini (convenience store) and drugstore' },
-            { item: 'Most cleaning products', reason: '100 yen stores have everything you need' },
-            { item: 'Large stuffed animals / bulk toys', reason: 'Takes too much space. Japan has incredible toy shops!' },
-            { item: 'Expensive electronics (unless region-free)', reason: 'Japan has latest models often at good prices. Some electronics have Japan-specific versions that work better locally.' },
-          ].map((item, i) => (
-            <div key={i} className="flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-0">
-              <div className="w-5 h-5 rounded-full bg-red-100 text-red-500 flex-shrink-0 flex items-center justify-center text-xs font-bold mt-0.5">✗</div>
-              <div>
-                <p className="text-sm font-semibold text-gray-800">{item.item}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{item.reason}</p>
-              </div>
+      {/* Active person detail */}
+      {activePD && (
+        <div className="bg-gray-900 border border-amber-500/20 rounded-2xl overflow-hidden">
+          {/* Person Header */}
+          <div className="border-l-4 border-amber-500 bg-gray-800 px-5 py-4 flex items-center gap-3">
+            <span className="text-2xl">{activePD.emoji}</span>
+            <div className="flex-1">
+              <h2 className="font-bold text-gray-100 text-lg">{activePD.personName}</h2>
+              <p className="text-gray-400 text-xs">{activePD.description}</p>
             </div>
-          ))}
-        </div>
-      </Collapsible>
-
-      {/* Buy in Japan */}
-      <Collapsible title="Buy in Japan — Great Value!" emoji="🛒" color="green" defaultOpen={false}>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { category: 'Baby & Kids', emoji: '👶', items: ['Diapers (Merries brand = amazing!)', 'Baby food pouches', 'Kids clothing', 'Toys & books', 'Children\'s medicine'] },
-            { category: 'Household', emoji: '🏠', items: ['All kitchen utensils', 'Bedding & pillows', 'Cleaning supplies', 'Storage solutions', 'Furniture (second-hand)'] },
-            { category: 'Electronics', emoji: '📱', items: ['SIM card / pocket WiFi', 'Electric fan/heater', 'Rice cooker', 'Small appliances', 'USB chargers'] },
-            { category: 'Clothing', emoji: '👕', items: ['Winter coats and boots', 'Rain gear (excellent!)', 'Comfortable shoes', 'School supplies', 'Seasonal clothing'] },
-            { category: 'Food & Kitchen', emoji: '🛒', items: ['All fresh produce', 'Japanese pantry staples', 'International sauces', 'Most snacks', 'Cooking oils'] },
-            { category: 'Beauty & Health', emoji: '💄', items: ['Sunscreen (Japanese brands are excellent)', 'Skincare', 'Over-the-counter medicine', 'Vitamins', 'Hair care'] },
-          ].map((cat, i) => (
-            <div key={i} className="bg-white rounded-xl p-3.5 border border-green-100">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">{cat.emoji}</span>
-                <p className="font-bold text-green-800 text-sm">{cat.category}</p>
-              </div>
-              {cat.items.map((item, j) => (
-                <p key={j} className="text-xs text-gray-600 flex items-center gap-1.5 py-0.5">
-                  <span className="w-1 h-1 rounded-full bg-green-400 flex-shrink-0" />
-                  {item}
-                </p>
-              ))}
+            <div className="text-right">
+              <p className="font-bold text-amber-400 text-xl">{activeProgress.done}/{activeProgress.total}</p>
+              <p className="text-xs text-gray-500">items ready</p>
             </div>
-          ))}
-        </div>
-        <div className="mt-4 bg-green-50 rounded-xl p-4 border border-green-100">
-          <p className="font-semibold text-green-800 mb-2 text-sm">🏪 Best Shopping in Tokyo</p>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { store: 'Daiso / Seria / Can★Do', desc: '100 yen stores — incredible value!' },
-              { store: 'Don Quijote (ドン・キホーテ)', desc: 'Discount store with everything' },
-              { store: 'Nitori', desc: 'Affordable home furnishings (Japan\'s IKEA)' },
-              { store: 'ハードオフ (Hard Off)', desc: 'Second-hand electronics + furniture' },
-              { store: 'ジモティー (Jmty)', desc: 'Free/cheap local items (like Craigslist)' },
-              { store: 'Amazon Japan', desc: 'Fast delivery, huge selection' },
-            ].map((s, i) => (
-              <div key={i} className="bg-white rounded-lg p-2.5">
-                <p className="text-xs font-bold text-gray-800">{s.store}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{s.desc}</p>
-              </div>
+          </div>
+
+          {/* Progress bar */}
+          <div className="h-1.5 bg-gray-800">
+            <div
+              className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 transition-all duration-500"
+              style={{ width: activeProgress.total > 0 ? `${(activeProgress.done / activeProgress.total) * 100}%` : '0%' }}
+            />
+          </div>
+
+          {/* Categories */}
+          <div className="p-4">
+            {activePD.categories.map(cat => (
+              <CategorySection
+                key={cat.categoryId}
+                personId={activePD.personId}
+                category={cat}
+                checked={checked}
+                onToggle={toggleItem}
+                onView={setLightboxPhoto}
+              />
             ))}
           </div>
         </div>
-      </Collapsible>
+      )}
+
+      {/* Budget Section */}
+      <BudgetSection />
+
+      {/* Lightbox */}
+      <PhotoLightbox photo={lightboxPhoto} onClose={() => setLightboxPhoto(null)} />
     </div>
   )
 }
