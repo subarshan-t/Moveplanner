@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Timeline from './pages/Timeline.jsx'
@@ -7,8 +7,9 @@ import Checklist from './pages/Checklist.jsx'
 import Kids from './pages/Kids.jsx'
 import Housing from './pages/Housing.jsx'
 import Finances from './pages/Finances.jsx'
-import Packing from './pages/Packing.jsx'
+import Shopping from './pages/Packing.jsx'
 import JapanLife from './pages/JapanLife.jsx'
+import { initDB } from './utils/storage.js'
 
 const pages = {
   dashboard: Dashboard,
@@ -18,7 +19,7 @@ const pages = {
   kids: Kids,
   housing: Housing,
   finances: Finances,
-  packing: Packing,
+  packing: Shopping,
   japanlife: JapanLife,
 }
 
@@ -26,13 +27,16 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard')
   const PageComponent = pages[currentPage] || Dashboard
 
+  useEffect(() => {
+    initDB().catch(console.error)
+  }, [])
+
   return (
-    <div className="min-h-screen bg-orange-50">
+    <div className="min-h-screen bg-gray-950">
       <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
-      <main className="lg:ml-64 min-h-screen">
-        <div className="pt-0 lg:pt-0 mt-14 lg:mt-0">
-          <PageComponent onNavigate={setCurrentPage} />
-        </div>
+      {/* Desktop: offset by sidebar. Mobile: offset by bottom nav bar */}
+      <main className="lg:ml-64 min-h-screen pb-20 lg:pb-0">
+        <PageComponent onNavigate={setCurrentPage} />
       </main>
     </div>
   )
