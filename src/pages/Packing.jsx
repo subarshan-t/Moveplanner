@@ -588,6 +588,7 @@ function BudgetSection() {
 
 export default function Shopping() {
   const [activePerson, setActivePerson] = useState('brindha')
+  const [selectedCat, setSelectedCat] = useState(null)
   const [checked, setChecked] = useState(() => getItemState('shopping-checked', {}))
   const [lightboxPhoto, setLightboxPhoto] = useState(null)
 
@@ -600,6 +601,12 @@ export default function Shopping() {
     setChecked(prev => ({ ...prev, [itemId]: !prev[itemId] }))
   }, [])
 
+  // When person changes, auto-select first category
+  useEffect(() => {
+    const pd = shoppingData.find(p => p.personId === activePerson)
+    if (pd && pd.categories.length) setSelectedCat(pd.categories[0].categoryId)
+  }, [activePerson])
+
   // Compute per-person progress
   const personProgress = shoppingData.map(person => {
     const allItems = person.categories.flatMap(c => c.items)
@@ -609,20 +616,21 @@ export default function Shopping() {
 
   const activePD = shoppingData.find(p => p.personId === activePerson)
   const activeProgress = personProgress.find(p => p.personId === activePerson)
+  const selectedCatData = activePD?.categories.find(c => c.categoryId === selectedCat)
 
   return (
-    <div className="p-4 lg:p-8 max-w-5xl mx-auto">
+    <div className="p-4 lg:p-8 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-5">
         <div className="flex items-center gap-2 mb-1">
-          <ShoppingBag className="w-7 h-7 text-amber-400" />
-          <h1 className="font-bold text-3xl text-gray-100">Shopping & Packing Planner</h1>
+          <ShoppingBag className="w-6 h-6 text-amber-400" />
+          <h1 className="font-bold text-2xl text-gray-100">Shopping & Packing Planner</h1>
         </div>
-        <p className="text-gray-400 text-base">Track what you've bought — check items off, upload photos of what you have ready</p>
+        <p className="text-gray-500 text-sm">Check items off as you buy them — upload a photo for each piece to confirm you have it</p>
       </div>
 
-      {/* Per-person summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      {/* ── Person selector cards ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         {shoppingData.map((person) => {
           const prog = personProgress.find(p => p.personId === person.personId)
           const pct = prog.total > 0 ? Math.round((prog.done / prog.total) * 100) : 0
@@ -631,66 +639,156 @@ export default function Shopping() {
             <button
               key={person.personId}
               onClick={() => setActivePerson(person.personId)}
-              className={`rounded-2xl p-4 border-2 transition-all duration-200 text-left ${
+              className={`rounded-xl p-3.5 border-2 transition-all duration-150 text-left ${
                 isActive
-                  ? 'bg-amber-500/15 border-amber-500/60'
-                  : 'bg-gray-900 border-gray-800 hover:border-gray-700'
+                  ? 'bg-amber-500/15 border-amber-500/50'
+                  : 'bg-gray-900 border-gray-800 hover:border-gray-700 hover:bg-gray-800/50'
               }`}
             >
-              <div className="text-2xl mb-1">{person.emoji}</div>
-              <p className={`font-bold text-sm mb-1 ${isActive ? 'text-amber-400' : 'text-gray-100'}`}>
-                {person.personName}
-              </p>
-              <div className="h-1.5 bg-gray-800 rounded-full mb-1 overflow-hidden">
+              <div className="flex items-center gap-2.5 mb-2">
+                <span className="text-xl">{person.emoji}</span>
+                <p className={`font-bold text-sm ${isActive ? 'text-amber-400' : 'text-gray-100'}`}>
+                  {person.personName}
+                </p>
+              </div>
+              <div className="h-1.5 bg-gray-800 rounded-full mb-1.5 overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-400">{prog.done}/{prog.total} items</p>
+              <p className="text-xs text-gray-500">{prog.done}/{prog.total} items · {pct}%</p>
             </button>
           )
         })}
       </div>
 
-      {/* Active person detail */}
+      {/* ── Active person panel ── */}
       {activePD && (
-        <div className="bg-gray-900 border border-amber-500/20 rounded-2xl overflow-hidden">
-          {/* Person Header */}
-          <div className="border-l-4 border-amber-500 bg-gray-800 px-5 py-4 flex items-center gap-3">
-            <span className="text-2xl">{activePD.emoji}</span>
-            <div className="flex-1">
-              <h2 className="font-bold text-gray-100 text-lg">{activePD.personName}</h2>
-              <p className="text-gray-400 text-xs">{activePD.description}</p>
+        <>
+          {/* Person header strip */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 mb-3 flex items-center gap-3">
+            <span className="text-xl">{activePD.emoji}</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-gray-100 text-sm">{activePD.personName}</p>
+              <p className="text-gray-500 text-xs truncate">{activePD.description}</p>
             </div>
-            <div className="text-right">
-              <p className="font-bold text-amber-400 text-xl">{activeProgress.done}/{activeProgress.total}</p>
+            <div className="text-right flex-shrink-0">
+              <p className="font-bold text-amber-400">{activeProgress.done}/{activeProgress.total}</p>
               <p className="text-xs text-gray-500">items ready</p>
             </div>
-          </div>
-
-          {/* Progress bar */}
-          <div className="h-1.5 bg-gray-800">
-            <div
-              className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 transition-all duration-500"
-              style={{ width: activeProgress.total > 0 ? `${(activeProgress.done / activeProgress.total) * 100}%` : '0%' }}
-            />
-          </div>
-
-          {/* Categories */}
-          <div className="p-4">
-            {activePD.categories.map(cat => (
-              <CategorySection
-                key={cat.categoryId}
-                personId={activePD.personId}
-                category={cat}
-                checked={checked}
-                onToggle={toggleItem}
-                onView={setLightboxPhoto}
+            <div className="w-24 h-1.5 bg-gray-800 rounded-full overflow-hidden flex-shrink-0">
+              <div
+                className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-500"
+                style={{ width: activeProgress.total > 0 ? `${(activeProgress.done / activeProgress.total) * 100}%` : '0%' }}
               />
-            ))}
+            </div>
           </div>
-        </div>
+
+          {/* ── DESKTOP: Two-panel layout ── */}
+          <div className="hidden lg:flex bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden" style={{ minHeight: '520px' }}>
+
+            {/* Left: Category list */}
+            <div className="w-52 flex-shrink-0 border-r border-gray-800 flex flex-col bg-gray-900">
+              <div className="px-3 py-2.5 border-b border-gray-800">
+                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Categories</p>
+              </div>
+              <div className="flex-1 overflow-y-auto py-1">
+                {activePD.categories.map(cat => {
+                  const catDone = cat.items.filter(it => checked[it.itemId]).length
+                  const catPct = cat.items.length > 0 ? (catDone / cat.items.length) * 100 : 0
+                  const isSelected = selectedCat === cat.categoryId
+                  return (
+                    <button
+                      key={cat.categoryId}
+                      onClick={() => setSelectedCat(cat.categoryId)}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-all border-r-2 ${
+                        isSelected
+                          ? 'bg-amber-500/10 border-amber-500'
+                          : 'border-transparent hover:bg-gray-800/60'
+                      }`}
+                    >
+                      <span className="text-base flex-shrink-0">{cat.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-xs font-semibold truncate leading-tight ${isSelected ? 'text-amber-400' : 'text-gray-300'}`}>
+                          {cat.title}
+                        </p>
+                        <div className="h-1 bg-gray-800 rounded-full mt-1 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${catDone === cat.items.length && cat.items.length > 0 ? 'bg-emerald-500' : 'bg-amber-500/50'}`}
+                            style={{ width: `${catPct}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className={`text-[10px] font-bold flex-shrink-0 ${
+                        catDone === cat.items.length && cat.items.length > 0 ? 'text-emerald-400' : 'text-gray-600'
+                      }`}>
+                        {catDone === cat.items.length && cat.items.length > 0 ? '✓' : `${catDone}/${cat.items.length}`}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Right: Items for selected category */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {selectedCatData ? (
+                <>
+                  {/* Category header */}
+                  <div className="flex items-center gap-3 px-5 py-3 bg-gray-800/60 border-b border-gray-800 flex-shrink-0">
+                    <span className="text-xl">{selectedCatData.icon}</span>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-100 text-sm">{selectedCatData.title}</p>
+                      {selectedCatData.note && (
+                        <p className="text-xs text-amber-400">⚠️ {selectedCatData.note}</p>
+                      )}
+                    </div>
+                    {selectedCatData.buyInJapan && (
+                      <span className="text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full flex-shrink-0">
+                        🛒 Buy in Japan
+                      </span>
+                    )}
+                  </div>
+                  {/* Items */}
+                  <div className="flex-1 overflow-y-auto p-3 space-y-0.5">
+                    {selectedCatData.items.map(item => (
+                      <ItemRow
+                        key={item.itemId}
+                        personId={activePD.personId}
+                        categoryId={selectedCatData.categoryId}
+                        item={item}
+                        checked={checked[item.itemId] || false}
+                        onToggle={toggleItem}
+                        onView={setLightboxPhoto}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-gray-600 text-sm">
+                  Select a category →
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── MOBILE: Accordion layout ── */}
+          <div className="lg:hidden bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+            <div className="p-4">
+              {activePD.categories.map(cat => (
+                <CategorySection
+                  key={cat.categoryId}
+                  personId={activePD.personId}
+                  category={cat}
+                  checked={checked}
+                  onToggle={toggleItem}
+                  onView={setLightboxPhoto}
+                />
+              ))}
+            </div>
+          </div>
+        </>
       )}
 
       {/* Budget Section */}

@@ -261,15 +261,15 @@ export default function Checklist() {
   }
 
   return (
-    <div className="p-4 lg:p-8 max-w-4xl mx-auto">
+    <div className="p-4 lg:p-8 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-2xl">✅</span>
-            <h1 className="font-bold text-3xl text-gray-100">Master Checklist</h1>
+            <h1 className="font-bold text-2xl text-gray-100">Master Checklist</h1>
           </div>
-          <p className="text-gray-400 text-base">Track every task for your Japan move — saved automatically!</p>
+          <p className="text-gray-500 text-sm">Every task for your Japan move — progress saved automatically</p>
         </div>
         <button
           onClick={resetAll}
@@ -303,115 +303,150 @@ export default function Checklist() {
         )}
       </div>
 
-      {/* Phases */}
-      {checklistData.map((phase) => {
-        const c = phaseColors[phase.phaseColor] || phaseColors.amber
-        const phaseItems = phase.categories.flatMap(cat => cat.items)
-        const phaseDone = phaseItems.filter(item => checked[item.id]).length
-        const phasePercent = phaseItems.length > 0 ? Math.round((phaseDone / phaseItems.length) * 100) : 0
+      {/* Phases — shared rendering for both mobile and desktop */}
+      {(() => {
+        const PhaseList = () => checklistData.map((phase) => {
+          const c = phaseColors[phase.phaseColor] || phaseColors.amber
+          const phaseItems = phase.categories.flatMap(cat => cat.items)
+          const phaseDone = phaseItems.filter(item => checked[item.id]).length
+          const phasePercent = phaseItems.length > 0 ? Math.round((phaseDone / phaseItems.length) * 100) : 0
 
-        return (
-          <div key={phase.phase} className="mb-6">
-            {/* Phase Header */}
-            <div className={`rounded-2xl bg-gray-900 border-l-4 ${c.accent} border border-r-gray-800 border-t-gray-800 border-b-gray-800 p-4 mb-3`}
-              style={{ borderRightColor: 'rgb(31 41 55)', borderTopColor: 'rgb(31 41 55)', borderBottomColor: 'rgb(31 41 55)' }}>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm ${c.badge}`}>
-                    {phase.phase}
+          return (
+            <div key={phase.phase} id={`phase-${phase.phase}`} className="mb-5">
+              {/* Phase header */}
+              <div className={`rounded-xl bg-gray-900 border-l-4 ${c.accent} border border-gray-800 p-4 mb-3`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm ${c.badge}`}>
+                      {phase.phase}
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-gray-100 text-sm">{phase.phaseLabel}</h2>
+                      <p className="text-gray-500 text-xs">{phase.phaseSubtitle}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="font-bold text-gray-100 text-base">{phase.phaseLabel}</h2>
-                    <p className="text-gray-400 text-xs">{phase.phaseSubtitle}</p>
+                  <div className="text-right">
+                    <p className={`font-bold text-lg ${c.label}`}>{phasePercent}%</p>
+                    <p className="text-gray-600 text-xs">{phaseDone}/{phaseItems.length}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`font-bold text-xl ${c.label}`}>{phasePercent}%</p>
-                  <p className="text-gray-500 text-xs">{phaseDone}/{phaseItems.length}</p>
+                <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                  <div className={`h-full ${c.bar} rounded-full transition-all duration-500`} style={{ width: `${phasePercent}%` }} />
                 </div>
               </div>
-              <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${c.bar} rounded-full transition-all duration-500`}
-                  style={{ width: `${phasePercent}%` }}
-                />
-              </div>
-            </div>
 
-            {/* Categories */}
-            {phase.categories.map((cat) => {
-              const catDone = cat.items.filter(item => checked[item.id]).length
-              const catPercent = cat.items.length > 0 ? Math.round((catDone / cat.items.length) * 100) : 0
-              const isOpen = expandedCategories[cat.id] !== false
-
-              return (
-                <div key={cat.id} className={`bg-gray-900 rounded-2xl border ${c.border} mb-3 overflow-hidden`}>
-                  <button
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-800/50 transition-colors"
-                    onClick={() => toggleCategory(cat.id)}
-                  >
-                    <span className="text-xl">{cat.emoji}</span>
-                    <span className="font-bold text-gray-100 flex-1">{cat.title}</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${c.badge}`}>
-                      {catDone}/{cat.items.length}
-                    </span>
-                    {isOpen ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
-                  </button>
-
-                  {/* Mini progress bar */}
-                  <div className="h-0.5 bg-gray-800">
-                    <div
-                      className={`h-full ${c.bar} transition-all duration-300`}
-                      style={{ width: `${catPercent}%` }}
-                    />
-                  </div>
-
-                  {isOpen && (
-                    <div className="px-2 py-2">
-                      {cat.items.map((item) => {
-                        const isDone = !!checked[item.id]
-                        return (
-                          <button
-                            key={item.id}
-                            onClick={() => toggleItem(item.id)}
-                            className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left group ${
-                              isDone ? 'opacity-50' : 'hover:bg-gray-800/60'
-                            }`}
-                          >
-                            <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition-all duration-200 ${
-                              isDone
-                                ? `${c.checkbox} text-white`
-                                : `border-gray-600 group-hover:${c.accent}`
-                            }`}>
-                              {isDone && (
-                                <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
-                                  <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <span className={`text-sm ${isDone ? 'line-through text-gray-500' : 'text-gray-300 group-hover:text-gray-100'}`}>
+              {/* Categories */}
+              {phase.categories.map((cat) => {
+                const catDone = cat.items.filter(item => checked[item.id]).length
+                const catPercent = cat.items.length > 0 ? Math.round((catDone / cat.items.length) * 100) : 0
+                const isOpen = expandedCategories[cat.id] !== false
+                return (
+                  <div key={cat.id} className={`bg-gray-900 rounded-xl border ${c.border} mb-2.5 overflow-hidden`}>
+                    <button
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-800/50 transition-colors"
+                      onClick={() => toggleCategory(cat.id)}
+                    >
+                      <span className="text-lg">{cat.emoji}</span>
+                      <span className="font-semibold text-gray-100 flex-1 text-sm">{cat.title}</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${c.badge}`}>
+                        {catDone}/{cat.items.length}
+                      </span>
+                      {isOpen ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
+                    </button>
+                    <div className="h-0.5 bg-gray-800">
+                      <div className={`h-full ${c.bar} transition-all duration-300`} style={{ width: `${catPercent}%` }} />
+                    </div>
+                    {isOpen && (
+                      <div className="px-2 py-1.5">
+                        {cat.items.map((item) => {
+                          const isDone = !!checked[item.id]
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => toggleItem(item.id)}
+                              className={`w-full flex items-start gap-3 px-3 py-2 rounded-xl transition-all duration-150 text-left group ${
+                                isDone ? 'opacity-50' : 'hover:bg-gray-800/60'
+                              }`}
+                            >
+                              <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition-all duration-200 ${
+                                isDone ? `${c.checkbox} text-white` : 'border-gray-600 group-hover:border-gray-400'
+                              }`}>
+                                {isDone && (
+                                  <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
+                                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                )}
+                              </div>
+                              <span className={`flex-1 text-sm ${isDone ? 'line-through text-gray-500' : 'text-gray-300 group-hover:text-gray-100'}`}>
                                 {item.text}
                               </span>
-                            </div>
-                            {item.urgent && !isDone && (
-                              <span className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full flex-shrink-0">
-                                Urgent
-                              </span>
-                            )}
-                          </button>
-                        )
-                      })}
+                              {item.urgent && !isDone && (
+                                <span className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full flex-shrink-0">
+                                  Urgent
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })
+
+        const PhaseSideNav = () => (
+          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="px-3 py-2.5 border-b border-gray-800">
+              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Jump to Phase</p>
+            </div>
+            {checklistData.map((phase) => {
+              const c = phaseColors[phase.phaseColor] || phaseColors.amber
+              const phaseItems = phase.categories.flatMap(cat => cat.items)
+              const phaseDone = phaseItems.filter(item => checked[item.id]).length
+              const phasePercent = phaseItems.length > 0 ? Math.round((phaseDone / phaseItems.length) * 100) : 0
+              const shortLabel = phase.phaseLabel.split(' — ')[1] || phase.phaseLabel
+              return (
+                <a key={phase.phase} href={`#phase-${phase.phase}`}
+                  className="flex items-center gap-2.5 px-3 py-3 border-b border-gray-800 last:border-0 hover:bg-gray-800/60 transition-colors group cursor-pointer">
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${c.badge}`}>
+                    {phase.phase}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-gray-300 group-hover:text-gray-100 leading-tight">{shortLabel}</p>
+                    <div className="h-1 bg-gray-800 rounded-full mt-1 overflow-hidden">
+                      <div className={`h-full ${c.bar} rounded-full`} style={{ width: `${phasePercent}%` }} />
                     </div>
-                  )}
-                </div>
+                  </div>
+                  <span className={`text-[10px] font-bold flex-shrink-0 ${c.label}`}>{phasePercent}%</span>
+                </a>
               )
             })}
           </div>
         )
-      })}
 
-      <div className="text-center py-6 text-gray-500 text-sm">
+        return (
+          <>
+            {/* Desktop: two columns */}
+            <div className="hidden lg:flex gap-5 items-start">
+              <div className="w-48 flex-shrink-0 sticky top-[70px]">
+                <PhaseSideNav />
+              </div>
+              <div className="flex-1 min-w-0">
+                <PhaseList />
+              </div>
+            </div>
+            {/* Mobile: single column */}
+            <div className="lg:hidden">
+              <PhaseList />
+            </div>
+          </>
+        )
+      })()}
+
+      <div className="text-center py-4 text-gray-600 text-xs">
         ✨ Progress is saved automatically in your browser
       </div>
     </div>
